@@ -78,6 +78,7 @@ func main() {
 	var noBrowser bool
 	var oauthCallbackPort int
 	var antigravityLogin bool
+	var githubCopilotLogin bool
 	var kimiLogin bool
 	var xaiLogin bool
 	var vertexImport string
@@ -97,6 +98,7 @@ func main() {
 	flag.BoolVar(&noBrowser, "no-browser", false, "Don't open browser automatically for OAuth")
 	flag.IntVar(&oauthCallbackPort, "oauth-callback-port", 0, "Override OAuth callback port (defaults to provider-specific port)")
 	flag.BoolVar(&antigravityLogin, "antigravity-login", false, "Login to Antigravity using OAuth")
+	flag.BoolVar(&githubCopilotLogin, "github-copilot-login", false, "Login to GitHub Copilot using OAuth Device Flow")
 	flag.BoolVar(&kimiLogin, "kimi-login", false, "Login to Kimi using OAuth")
 	flag.BoolVar(&xaiLogin, "xai-login", false, "Login to xAI using OAuth")
 	flag.StringVar(&configPath, "config", DefaultConfigPath, "Configure File Path")
@@ -600,6 +602,8 @@ func main() {
 	} else if antigravityLogin {
 		// Handle Antigravity login
 		cmd.DoAntigravityLogin(cfg, options)
+	} else if githubCopilotLogin {
+		cmd.DoGitHubCopilotLogin(cfg, options)
 	} else if codexLogin {
 		// Handle Codex login
 		cmd.DoCodexLogin(cfg, options)

@@ -128,6 +128,9 @@ type Config struct {
 	// XAIKey defines xAI API key configurations using the same structure as Codex API keys.
 	XAIKey []XAIKey `yaml:"xai-api-key" json:"xai-api-key"`
 
+	// GitHubCopilot configures OAuth and upstream API endpoints for GitHub Copilot.
+	GitHubCopilot GitHubCopilotConfig `yaml:"github-copilot" json:"github-copilot"`
+
 	// Codex configures provider-wide Codex request behavior.
 	Codex CodexConfig `yaml:"codex" json:"codex"`
 
@@ -162,7 +165,7 @@ type Config struct {
 
 	// OAuthModelAlias defines global model name aliases for OAuth/file-backed auth channels.
 	// These aliases affect both model listing and model routing for supported channels:
-	// vertex, aistudio, antigravity, claude, codex, kimi, xai.
+	// vertex, aistudio, antigravity, claude, codex, github-copilot, kimi, xai.
 	//
 	// NOTE: This does not apply to existing per-credential model alias features under:
 	// gemini-api-key, interactions-api-key, codex-api-key, xai-api-key, claude-api-key, openai-compatibility, and vertex-api-key.
@@ -170,6 +173,15 @@ type Config struct {
 
 	// Payload defines default and override rules for provider payload parameters.
 	Payload PayloadConfig `yaml:"payload" json:"payload"`
+}
+
+// GitHubCopilotConfig configures the native GitHub Copilot provider.
+// ClientID must belong to an OAuth app with GitHub Device Flow enabled.
+type GitHubCopilotConfig struct {
+	ClientID         string `yaml:"client-id" json:"client-id"`
+	EnterpriseDomain string `yaml:"enterprise-domain,omitempty" json:"enterprise-domain,omitempty"`
+	APIBaseURL       string `yaml:"api-base-url,omitempty" json:"api-base-url,omitempty"`
+	APIVersion       string `yaml:"api-version,omitempty" json:"api-version,omitempty"`
 }
 
 // PluginsConfig holds dynamic plugin system settings.

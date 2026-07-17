@@ -35,6 +35,16 @@ remote-management:
 # Authentication directory (supports ~ for home directory)
 auth-dir: "~/.cli-proxy-api"
 
+# Native GitHub Copilot provider. Create a GitHub OAuth App, enable Device Flow,
+# and configure its public client ID here or through GITHUB_COPILOT_CLIENT_ID.
+# Run with --github-copilot-login to create an auth file. Models are discovered
+# from the account-scoped Copilot /models endpoint at runtime.
+# github-copilot:
+#   client-id: "YOUR_GITHUB_OAUTH_CLIENT_ID"
+#   enterprise-domain: "github.example.com" # optional; omit for github.com
+#   api-base-url: "https://copilot-api.example.com" # optional override
+#   api-version: "2026-06-01" # optional
+
 # API keys for authentication
 api-keys:
   - "your-api-key-1"
@@ -404,7 +414,7 @@ nonstream-keepalive-interval: 0
 
 # Global OAuth model name aliases (per channel)
 # These aliases rename model IDs for both model listing and request routing.
-# Supported channels: vertex, aistudio, antigravity, claude, codex, kimi, xai.
+# Supported channels: vertex, aistudio, antigravity, claude, codex, github-copilot, kimi, xai.
 # NOTE: Aliases do not apply to gemini-api-key, interactions-api-key, codex-api-key, xai-api-key, claude-api-key, openai-compatibility, or vertex-api-key.
 # NOTE: Because aliases affect the merged /v1 model list and merged request routing, overlapping
 # client-visible names can become ambiguous across providers. For strict backend pinning, use
@@ -442,6 +452,9 @@ nonstream-keepalive-interval: 0
 #   codex:
 #     - name: "gpt-5"
 #       alias: "g5"
+#   github-copilot:
+#     - name: "gpt-5"
+#       alias: "copilot-gpt-5"
 #   kimi:
 #     - name: "kimi-k2.5"
 #       alias: "k2.5"
@@ -464,6 +477,8 @@ nonstream-keepalive-interval: 0
 #     - "claude-3-5-haiku-20241022"
 #   codex:
 #     - "gpt-5-codex-mini"
+#   github-copilot:
+#     - "model-disabled-by-local-policy"
 #   kimi:
 #     - "kimi-k2-thinking"
 #   xai:

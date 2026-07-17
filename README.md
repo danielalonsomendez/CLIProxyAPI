@@ -111,6 +111,7 @@ PackyCode provides special discounts for our software users: register using <a h
 - OpenAI Codex support (GPT models) via OAuth login
 - Claude Code support via OAuth login
 - Grok Build support via OAuth login
+- GitHub Copilot support via OAuth Device Flow and account-scoped model discovery
 - Streaming, non-streaming, and WebSocket responses where supported
 - Function calling/tools support
 - Multimodal input support (text and images)
@@ -150,6 +151,7 @@ Full CLIProxyAPI management center with request-level monitoring and cost estima
 - Advanced (executors & translators): [docs/sdk-advanced.md](docs/sdk-advanced.md)
 - Access: [docs/sdk-access.md](docs/sdk-access.md)
 - Watcher: [docs/sdk-watcher.md](docs/sdk-watcher.md)
+- GitHub Copilot provider: [docs/github-copilot.md](docs/github-copilot.md)
 - Custom Provider Example: `examples/custom-provider`
 
 ## Contributing

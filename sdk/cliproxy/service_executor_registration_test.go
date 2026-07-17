@@ -83,6 +83,7 @@ func TestRegisterAvailableExecutors(t *testing.T) {
 		"vertex",
 		"aistudio",
 		"antigravity",
+		"github-copilot",
 		"kimi",
 		"xai",
 		"openai-compatibility",
@@ -98,6 +99,10 @@ func TestRegisterAvailableExecutors(t *testing.T) {
 	resolved, _ := service.coreManager.Executor("plugin-provider")
 	if _, isPlugin := resolved.(serviceTestPluginExecutor); !isPlugin {
 		t.Fatalf("executor type = %T, want serviceTestPluginExecutor", resolved)
+	}
+	copilotExecutor, _ := service.coreManager.Executor("github-copilot")
+	if _, ok := copilotExecutor.(*runtimeexecutor.GitHubCopilotExecutor); !ok {
+		t.Fatalf("GitHub Copilot executor type = %T, want *executor.GitHubCopilotExecutor", copilotExecutor)
 	}
 }
 

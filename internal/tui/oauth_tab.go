@@ -23,6 +23,7 @@ var oauthProviders = []oauthProvider{
 	{"Claude (Anthropic)", "anthropic-auth-url", "🟧", false},
 	{"Codex (OpenAI)", "codex-auth-url", "🟩", false},
 	{"Antigravity", "antigravity-auth-url", "🟪", false},
+	{"GitHub Copilot", "github-copilot-auth-url", "🐙", true},
 	{"Kimi", "kimi-auth-url", "🟫", true},
 	{"xAI", "xai-auth-url", "⬛", true},
 }
@@ -354,6 +355,8 @@ func (m oauthTabModel) submitCallback(callbackURL string) tea.Cmd {
 					providerKey = "codex"
 				case "antigravity-auth-url":
 					providerKey = "antigravity"
+				case "github-copilot-auth-url":
+					providerKey = "github-copilot"
 				case "kimi-auth-url":
 					providerKey = "kimi"
 				case "xai-auth-url":

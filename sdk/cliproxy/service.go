@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/router-for-me/CLIProxyAPI/v7/internal/api"
+	githubcopilotauth "github.com/router-for-me/CLIProxyAPI/v7/internal/auth/githubcopilot"
 	"github.com/router-for-me/CLIProxyAPI/v7/internal/constant"
 	"github.com/router-for-me/CLIProxyAPI/v7/internal/home"
 	"github.com/router-for-me/CLIProxyAPI/v7/internal/homeplugins"
@@ -992,6 +993,7 @@ func baselineExecutorAuths() []*coreauth.Auth {
 		"vertex",
 		"aistudio",
 		"antigravity",
+		githubcopilotauth.Provider,
 		"kimi",
 		"xai",
 		"openai-compatibility",
@@ -1079,6 +1081,8 @@ func (s *Service) registerExecutorForAuth(a *coreauth.Auth, forceReplace bool) {
 		s.coreManager.RegisterExecutor(executor.NewAntigravityExecutor(s.cfg))
 	case "claude":
 		s.coreManager.RegisterExecutor(executor.NewClaudeExecutor(s.cfg))
+	case githubcopilotauth.Provider:
+		s.coreManager.RegisterExecutor(executor.NewGitHubCopilotExecutor(s.cfg))
 	case "kimi":
 		s.coreManager.RegisterExecutor(executor.NewKimiExecutor(s.cfg))
 	case "xai":
@@ -2022,6 +2026,13 @@ func (s *Service) registerModelsForAuthWithCache(ctx context.Context, a *coreaut
 			}
 		}
 		models = applyExcludedModels(models, excluded)
+	case githubcopilotauth.Provider:
+		copilotModels, errFetch := s.fetchGitHubCopilotModelsForAuth(ctx, a)
+		if errFetch != nil {
+			log.WithError(errFetch).WithField("auth_id", a.ID).Warn("failed to refresh GitHub Copilot model catalog")
+			return
+		}
+		models = applyExcludedModels(copilotModels, excluded)
 	case "kimi":
 		models = registry.GetKimiModels()
 		models = applyExcludedModels(models, excluded)

@@ -25,6 +25,7 @@ import (
 	"github.com/router-for-me/CLIProxyAPI/v7/internal/auth/antigravity"
 	"github.com/router-for-me/CLIProxyAPI/v7/internal/auth/claude"
 	"github.com/router-for-me/CLIProxyAPI/v7/internal/auth/codex"
+	githubcopilotauth "github.com/router-for-me/CLIProxyAPI/v7/internal/auth/githubcopilot"
 	"github.com/router-for-me/CLIProxyAPI/v7/internal/auth/kimi"
 	xaiauth "github.com/router-for-me/CLIProxyAPI/v7/internal/auth/xai"
 	"github.com/router-for-me/CLIProxyAPI/v7/internal/config"
@@ -2578,6 +2579,80 @@ func (h *Handler) RequestKimiToken(c *gin.Context) {
 		response["expires_in"] = deviceFlow.ExpiresIn
 	}
 	c.JSON(200, response)
+}
+
+// RequestGitHubCopilotToken starts GitHub Device Flow and persists the resulting credential.
+func (h *Handler) RequestGitHubCopilotToken(c *gin.Context) {
+	ctx := PopulateAuthContext(context.Background(), c)
+	state := fmt.Sprintf("ghc-%d", time.Now().UnixNano())
+	authService, err := githubcopilotauth.NewAuth(h.cfg)
+	if err != nil {
+		log.WithError(err).Error("failed to initialize GitHub Copilot authentication")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	deviceFlow, err := authService.StartDeviceFlow(ctx)
+	if err != nil {
+		log.WithError(err).Error("failed to start GitHub Copilot Device Flow")
+		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to start GitHub Copilot authentication"})
+		return
+	}
+	RegisterOAuthSession(state, githubcopilotauth.Provider)
+
+	go func() {
+		pollCtx, cancelPoll := context.WithCancel(ctx)
+		defer cancelPoll()
+		go watchOAuthSessionCancel(pollCtx, cancelPoll, state, githubcopilotauth.Provider)
+		token, errWait := authService.WaitForAuthorization(pollCtx, deviceFlow)
+		if errWait != nil {
+			if IsOAuthSessionPending(state, githubcopilotauth.Provider) {
+				SetOAuthSessionError(state, oauthSessionErrorWithCause("Authentication failed", errWait))
+			}
+			return
+		}
+		if !IsOAuthSessionPending(state, githubcopilotauth.Provider) {
+			return
+		}
+		storage := authService.CreateTokenStorage(token)
+		metadata := map[string]any{
+			"type":         githubcopilotauth.Provider,
+			"access_token": token.AccessToken,
+			"token_type":   token.TokenType,
+			"scope":        token.Scope,
+			"timestamp":    time.Now().UnixMilli(),
+		}
+		if storage != nil {
+			if domain := strings.TrimSpace(storage.EnterpriseDomain); domain != "" {
+				metadata["enterprise_domain"] = domain
+			}
+			if clientID := strings.TrimSpace(storage.ClientID); clientID != "" {
+				metadata["client_id"] = clientID
+			}
+		}
+		fileName := fmt.Sprintf("github-copilot-%d.json", time.Now().UnixMilli())
+		record := &coreauth.Auth{
+			ID: fileName, Provider: githubcopilotauth.Provider, FileName: fileName,
+			Label: "GitHub Copilot User", Storage: storage, Metadata: metadata,
+		}
+		if errGuard := guardOAuthSessionPendingForSave(state, githubcopilotauth.Provider); errGuard != nil {
+			return
+		}
+		if _, errSave := h.saveTokenRecord(ctx, record); errSave != nil {
+			log.WithError(errSave).Error("failed to save GitHub Copilot credential")
+			SetOAuthSessionError(state, "Failed to save authentication tokens")
+			return
+		}
+		CompleteOAuthSession(state)
+	}()
+
+	response := gin.H{
+		"status": "ok", "url": deviceFlow.VerificationURI, "state": state,
+		"flow": "device", "user_code": deviceFlow.UserCode,
+	}
+	if deviceFlow.ExpiresIn > 0 {
+		response["expires_in"] = deviceFlow.ExpiresIn
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 // watchOAuthSessionCancel cancels pollCtx once the OAuth session is no longer pending.
